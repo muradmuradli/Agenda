@@ -1,0 +1,9 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "../apps/auth-service/src/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
