@@ -26,9 +26,6 @@
   "files": [],
   "references": [
     {
-      "path": "./apps/agenda/tsconfig.app.json"
-    },
-    {
       "path": "./apps/auth-service/tsconfig.app.json"
     }
   ]
