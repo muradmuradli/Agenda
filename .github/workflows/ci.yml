@@ -19,6 +19,11 @@ jobs:
     name: Lint, typecheck, build & unit test
     runs-on: ubuntu-latest
 
+    env:
+      # prisma.config.ts resolves DATABASE_URL just to load the config, even
+      # for commands like `prisma generate` that never connect to a database.
+      DATABASE_URL: postgresql://placeholder:placeholder@localhost:5432/placeholder
+
     steps:
       - uses: actions/checkout@v4
 
