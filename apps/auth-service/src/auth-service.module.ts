@@ -6,18 +6,24 @@ import { PrismaService } from './prisma/prisma.service.js';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from './prisma/prisma.module.js';
 import { HealthModule } from './health/health.module.js';
-import { UsersModule } from './users/users.module.js';
 import { PasswordService } from './password/password.service.js';
+import { TokenService } from './token/token.service.js';
+import { JwksController } from './token/jwks.controller.js';
+import { RefreshTokenService } from './token/refresh-token.service.js';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, validate: validateEnv }),
     PrismaModule,
     HealthModule,
-    UsersModule,
   ],
-  controllers: [AuthServiceController],
-  providers: [AuthServiceService, PrismaService, PasswordService],
-  exports: [PrismaService],
+  controllers: [AuthServiceController, JwksController],
+  providers: [
+    AuthServiceService,
+    PasswordService,
+    TokenService,
+    RefreshTokenService,
+  ],
+  exports: [],
 })
 export class AuthServiceModule {}

@@ -1,11 +1,16 @@
-import { Body, Controller, Get, HttpCode, Post } from '@nestjs/common';
+import { Body, Controller, HttpCode, Post } from '@nestjs/common';
 import { AuthServiceService } from './auth-service.service.js';
-import { RegisterDto } from './dtos/register-dto.js';
 import { LoginDto } from './dtos/login-dto.js';
+import { RefreshTokenDto } from './dtos/refresh-token.dto.js';
+import { RegisterDto } from './dtos/register-dto.js';
+import { RefreshTokenService } from './token/refresh-token.service.js';
 
-@Controller('/auth')
+@Controller('auth')
 export class AuthServiceController {
-  constructor(private readonly authServiceService: AuthServiceService) {}
+  constructor(
+    private readonly authServiceService: AuthServiceService,
+    private readonly refreshTokenService: RefreshTokenService,
+  ) {}
 
   @Post('register')
   @HttpCode(201)
@@ -21,6 +26,24 @@ export class AuthServiceController {
   @HttpCode(200)
   async login(@Body() dto: LoginDto) {
     const user = await this.authServiceService.login(dto);
-    return { user_id: user.id };
+    return this.refreshTokenService.issueForLogin(user);
+  }
+
+  @Post('refresh')
+  @HttpCode(200)
+  refresh(@Body() dto: RefreshTokenDto) {
+    return this.refreshTokenService.rotate(dto.refreshToken);
+  }
+
+  @Post('logout')
+  @HttpCode(204)
+  async logout(@Body() dto: RefreshTokenDto) {
+    await this.refreshTokenService.logout(dto.refreshToken);
+  }
+
+  @Post('logout-all')
+  @HttpCode(204)
+  async logoutAll(@Body() dto: RefreshTokenDto) {
+    await this.refreshTokenService.logoutAll(dto.refreshToken);
   }
 }
