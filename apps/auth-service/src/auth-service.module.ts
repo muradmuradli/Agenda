@@ -6,15 +6,18 @@ import { PrismaService } from './prisma/prisma.service.js';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from './prisma/prisma.module.js';
 import { HealthModule } from './health/health.module.js';
+import { UsersModule } from './users/users.module.js';
+import { PasswordService } from './password/password.service.js';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, validate: validateEnv }),
     PrismaModule,
     HealthModule,
+    UsersModule,
   ],
   controllers: [AuthServiceController],
-  providers: [AuthServiceService, PrismaService],
+  providers: [AuthServiceService, PrismaService, PasswordService],
   exports: [PrismaService],
 })
 export class AuthServiceModule {}
