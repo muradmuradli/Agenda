@@ -3,25 +3,25 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { PrismaService } from './prisma/prisma.service.js';
-import { PasswordService } from './password/password.service.js';
-import { RegisterDto } from './dtos/register-dto.js';
 import { Prisma, Role } from './generated/prisma/client.js';
-import { LoginDto } from './dtos/login-dto.js';
+import { PasswordService } from './password/password.service.js';
+import { PrismaService } from './prisma/prisma.service.js';
+import { LockoutService } from './redis/lockout.service.js';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly passwordService: PasswordService,
+    private readonly lockout: LockoutService,
   ) {}
 
-  async register(dto: RegisterDto): Promise<void> {
-    const passwordHash = await this.passwordService.hash(dto.password);
+  async register(email: string, password: string): Promise<void> {
+    const passwordHash = await this.passwordService.hash(password);
     try {
       await this.prismaService.user.create({
         data: {
-          email: dto.email,
+          email,
           passwordHash,
         },
       });
@@ -37,23 +37,23 @@ export class AuthService {
     }
   }
 
-  async login(dto: LoginDto) {
-    const user = await this.prismaService.user.findUnique({
-      where: { email: dto.email },
-    });
+  async login(email: string, password: string) {
+    await this.lockout.assertNotLocked(email);
 
+    const user = await this.prismaService.user.findUnique({ where: { email } });
     let ok = false;
-
     if (user) {
-      ok = await this.passwordService.verify(user.passwordHash, dto.password);
+      ok = await this.passwordService.verify(user.passwordHash, password);
     } else {
-      await this.passwordService.verifyAgainstDummy(dto.password);
+      await this.passwordService.verifyAgainstDummy(password);
     }
 
     if (!user || !ok) {
-      throw new UnauthorizedException('Invalid credentials!');
+      await this.lockout.recordFailure(email);
+      throw new UnauthorizedException('Invalid credentials');
     }
 
+    await this.lockout.reset(email);
     return user;
   }
 

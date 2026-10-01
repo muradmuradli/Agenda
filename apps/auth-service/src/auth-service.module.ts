@@ -10,14 +10,16 @@ import { TokenService } from './token/token.service.js';
 import { JwksController } from './token/jwks.controller.js';
 import { RefreshTokenService } from './token/refresh-token.service.js';
 import { APP_GUARD } from '@nestjs/core';
-import { JwtAuthGuard } from './common/jwt-auth-guard.js';
+import { JwtAuthGuard } from './common/jwt-auth.guard.js';
 import { RolesGuard } from './common/roles.guard.js';
+import { RedisModule } from './redis/redis.module.js';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, validate: validateEnv }),
     PrismaModule,
     HealthModule,
+    RedisModule,
   ],
   controllers: [AuthController, JwksController],
   providers: [

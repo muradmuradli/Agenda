@@ -7,6 +7,7 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth-service.service.js';
 import { LoginDto } from './dtos/login-dto.js';
@@ -19,6 +20,8 @@ import type { AuthUser } from './common/auth-user.js';
 import { Roles } from './common/roles.decorator.js';
 import { UpdateRoleDto } from './dtos/update-role.dto.js';
 import { Role } from './generated/prisma/enums.js';
+import { RateLimitGuard } from './common/rate-limit.guard.js';
+import { RateLimit } from './common/rate-limit.decorator.js';
 
 @Controller('auth')
 export class AuthController {
@@ -28,10 +31,12 @@ export class AuthController {
   ) {}
 
   @Public()
+  @UseGuards(RateLimitGuard)
+  @RateLimit({ name: 'register', limit: 5, windowSeconds: 60 * 60 })
   @Post('register')
   @HttpCode(202)
   async register(@Body() dto: RegisterDto) {
-    await this.auth.register(dto);
+    await this.auth.register(dto.email, dto.password);
     return {
       message:
         'If the email can be registered, you will receive further instructions.',
@@ -39,10 +44,12 @@ export class AuthController {
   }
 
   @Public()
+  @UseGuards(RateLimitGuard)
+  @RateLimit({ name: 'register', limit: 5, windowSeconds: 60 * 60 })
   @Post('login')
   @HttpCode(200)
   async login(@Body() dto: LoginDto) {
-    const user = await this.auth.login(dto);
+    const user = await this.auth.login(dto.email, dto.password);
     return this.refreshTokens.issueForLogin(user);
   }
 
