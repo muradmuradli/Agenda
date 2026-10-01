@@ -18,7 +18,7 @@ export class PasswordService {
     return argon2.hash(plain, this.opts);
   }
 
-  verify(plain: string, hash: string) {
+  async verify(plain: string, hash: string) {
     return argon2.verify(plain, hash).catch(() => false);
   }
 
