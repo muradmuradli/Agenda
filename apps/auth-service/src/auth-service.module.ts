@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { AuthServiceController } from './auth-service.controller.js';
-import { AuthServiceService } from './auth-service.service.js';
+import { AuthController } from './auth-service.controller.js';
+import { AuthService } from './auth-service.service.js';
 import { validateEnv } from './config/env.validation.js';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from './prisma/prisma.module.js';
@@ -9,6 +9,9 @@ import { PasswordService } from './password/password.service.js';
 import { TokenService } from './token/token.service.js';
 import { JwksController } from './token/jwks.controller.js';
 import { RefreshTokenService } from './token/refresh-token.service.js';
+import { APP_GUARD } from '@nestjs/core';
+import { JwtAuthGuard } from './common/jwt-auth-guard.js';
+import { RolesGuard } from './common/roles.guard.js';
 
 @Module({
   imports: [
@@ -16,12 +19,14 @@ import { RefreshTokenService } from './token/refresh-token.service.js';
     PrismaModule,
     HealthModule,
   ],
-  controllers: [AuthServiceController, JwksController],
+  controllers: [AuthController, JwksController],
   providers: [
-    AuthServiceService,
+    AuthService,
     PasswordService,
     TokenService,
     RefreshTokenService,
+    { provide: APP_GUARD, useClass: JwtAuthGuard },
+    { provide: APP_GUARD, useClass: RolesGuard },
   ],
   exports: [],
 })

@@ -115,13 +115,9 @@ export class RefreshTokenService {
   }
 
   // Logout every session of this user
-  async logoutAll(presented: string): Promise<void> {
-    const stored = await this.prismaService.refreshToken.findUnique({
-      where: { tokenHash: this.hash(presented) },
-    });
-    if (!stored) return;
+  async logoutAll(userId: string): Promise<void> {
     await this.prismaService.refreshToken.updateMany({
-      where: { userId: stored.userId, revokedAt: null },
+      where: { userId, revokedAt: null },
       data: { revokedAt: new Date() },
     });
   }
